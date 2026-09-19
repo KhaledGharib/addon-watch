@@ -1,0 +1,42 @@
+name: release
+
+# Publishing is what a tag means. Nothing else triggers it, so a push to
+# main can never put a release on PyPI by accident.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build
+      - run: python -m build
+      # The tests run here too: a tag that cannot pass them is not a release.
+      - run: pip install -e ".[dev]" && python -m pytest -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # The environment PyPI's trusted publisher was told to expect. Protect it
+    # in the repository settings to decide who may release.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/addon-watch
+    permissions:
+      # The OIDC token PyPI trades for an upload. No API token, no secret.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

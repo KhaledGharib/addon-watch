@@ -99,6 +99,17 @@ loop costs nothing and an event-based watcher (`watchdog`, `watchexec`,
 platform surface. The latency that matters is the poll interval and the
 debounce, both 0.2s, and Odoo's own boot, which is seconds.
 
+## Releasing
+
+A tag publishes it. `.github/workflows/release.yml` builds, runs the tests
+and uploads to PyPI through [trusted
+publishing](https://docs.pypi.org/trusted-publishers/) -- an OIDC token
+traded for an upload, so there is no API token to store or leak.
+
+```console
+git tag -a v0.1.0 -m "addon-watch 0.1.0" && git push origin v0.1.0
+```
+
 ## Development
 
 ```console
